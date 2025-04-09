@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROI Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+          theme: {
+            extend: {
+              fontFamily: {
+                sans: ['Inter', 'sans-serif'],
+              },
+            }
+          }
+        }
+    </script>
+    <style>
+      @font-face {
+        font-family: 'LucideIcons';
+        src: url(https://cdn.jsdelivr.net/npm/lucide-static@latest/font/Lucide.ttf) format('truetype');
+      }
+      .lucide {
+        font-family: 'LucideIcons';
+        font-size: 1.25rem; /* Adjust size as needed */
+        line-height: 1;
+        vertical-align: middle;
+      }
+      /* Style for active tab */
+      .tab-active {
+        border-bottom-color: #3b82f6; /* blue-500 */
+        color: #3b82f6;
+        font-weight: 600;
+      }
+      /* Basic input styling */
+      input[type="text"], input[type="number"] {
+        @apply w-full px-2 py-1 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500;
+      }
+      /* Table styling */
+      th, td {
+        @apply px-4 py-2 text-left border-b border-gray-200;
+      }
+      th {
+        @apply bg-gray-100 font-semibold text-gray-700;
+      }
+      tfoot td {
+        @apply font-bold;
+      }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto space-y-8">
+
+        <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">ROI Calculator</h1>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">Existing Contract Spend</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full" id="existing-table">
+                    <thead>
+                        <tr>
+                            <th class="w-2/5">Entitlement</th>
+                            <th class="w-1/5">Quantity</th>
+                            <th class="w-1/5">Per Unit Cost ($)</th>
+                            <th class="w-1/5">Total Spend ($)</th>
+                            <th class="w-auto"></th> </tr>
+                    </thead>
+                    <tbody data-table-id="existing">
+                        <tr class="entitlement-row">
+                            <td><input type="text" placeholder="e.g., Software License" class="entitlement-name"></td>
+                            <td><input type="number" min="0" value="10" class="quantity-input"></td>
+                            <td><input type="number" min="0" step="0.01" value="50.00" class="cost-input"></td>
+                            <td class="total-spend text-right">0.00</td>
+                            <td><button class="text-red-500 hover:text-red-700 remove-row-btn" title="Remove Row"><span class="lucide">&#xea16;</span></button></td>
+                        </tr>
+                         <tr class="entitlement-row">
+                            <td><input type="text" placeholder="e.g., Support Contract" class="entitlement-name"></td>
+                            <td><input type="number" min="0" value="1" class="quantity-input"></td>
+                            <td><input type="number" min="0" step="0.01" value="1200.00" class="cost-input"></td>
+                            <td class="total-spend text-right">0.00</td>
+                             <td><button class="text-red-500 hover:text-red-700 remove-row-btn" title="Remove Row"><span class="lucide">&#xea16;</span></button></td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" class="text-right font-bold text-gray-700">Total Contract Spend:</td>
+                            <td class="total-contract-spend text-right font-bold">0.00</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+             <button class="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 flex items-center add-row-btn" data-table-target="existing">
+                <span class="lucide mr-2">&#xe908;</span> Add Entitlement
+            </button>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">New Contract Spend Comparison</h2>
+
+            <div class="border-b border-gray-200 mb-4">
+                <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+                    <button class="tab-button py-3 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap tab-active" data-tab="12m">
+                        12 Months
+                    </button>
+                    <button class="tab-button py-3 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap" data-tab="24m">
+                        24 Months
+                    </button>
+                    <button class="tab-button py-3 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap" data-tab="36m">
+                        36 Months
+                    </button>
+                </nav>
+            </div>
+
+            <div id="tab-content">
+                <div class="tab-pane active" id="12m">
+                    <div class="overflow-x-auto">
+                         <table class="min-w-full" id="new-12m-table">
+                            <thead>
+                                <tr>
+                                    <th class="w-2/5">Entitlement</th>
+                                    <th class="w-1/5">Quantity</th>
+                                    <th class="w-1/5">Per Unit Cost ($)</th>
+                                    <th class="w-1/5">Total Spend ($)</th>
+                                    <th class="w-auto"></th> </tr>
+                            </thead>
+                            <tbody data-table-id="new-12m">
+                                <tr class="entitlement-row">
+                                    <td><input type="text" placeholder="e.g., Cloud Service" class="entitlement-name"></td>
+                                    <td><input type="number" min="0" value="5" class="quantity-input"></td>
+                                    <td><input type="number" min="0" step="0.01" value="99.99" class="cost-input"></td>
+                                    <td class="total-spend text-right">0.00</td>
+                                    <td><button class="text-red-500 hover:text-red-700 remove-row-btn" title="Remove Row"><span class="lucide">&#xea16;</span></button></td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3" class="text-right font-bold text-gray-700">Total Contract Spend (12m):</td>
+                                    <td class="total-contract-spend text-right font-bold">0.00</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                     <button class="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 flex items-center add-row-btn" data-table-target="new-12m">
+                        <span class="lucide mr-2">&#xe908;</span> Add Entitlement
+                    </button>
+                </div>
+
+                <div class="tab-pane hidden" id="24m">
+                     <div class="overflow-x-auto">
+                         <table class="min-w-full" id="new-24m-table">
+                            <thead>
+                                <tr>
+                                    <th class="w-2/5">Entitlement</th>
+                                    <th class="w-1/5">Quantity</th>
+                                    <th class="w-1/5">Per Unit Cost ($)</th>
+                                    <th class="w-1/5">Total Spend ($)</th>
+                                     <th class="w-auto"></th> </tr>
+                            </thead>
+                            <tbody data-table-id="new-24m">
+                                <tr class="entitlement-row">
+                                    <td><input type="text" placeholder="e.g., Cloud Service" class="entitlement-name"></td>
+                                    <td><input type="number" min="0" value="5" class="quantity-input"></td>
+                                    <td><input type="number" min="0" step="0.01" value="95.00" class="cost-input"></td>
+                                    <td class="total-spend text-right">0.00</td>
+                                    <td><button class="text-red-500 hover:text-red-700 remove-row-btn" title="Remove Row"><span class="lucide">&#xea16;</span></button></td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3" class="text-right font-bold text-gray-700">Total Contract Spend (24m):</td>
+                                    <td class="total-contract-spend text-right font-bold">0.00</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                     <button class="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 flex items-center add-row-btn" data-table-target="new-24m">
+                        <span class="lucide mr-2">&#xe908;</span> Add Entitlement
+                    </button>
+                </div>
+
+                <div class="tab-pane hidden" id="36m">
+                     <div class="overflow-x-auto">
+                         <table class="min-w-full" id="new-36m-table">
+                            <thead>
+                                <tr>
+                                    <th class="w-2/5">Entitlement</th>
+                                    <th class="w-1/5">Quantity</th>
+                                    <th class="w-1/5">Per Unit Cost ($)</th>
+                                    <th class="w-1/5">Total Spend ($)</th>
+                                    <th class="w-auto"></th> </tr>
+                            </thead>
+                            <tbody data-table-id="new-36m">
+                                <tr class="entitlement-row">
+                                     <td><input type="text" placeholder="e.g., Cloud Service" class="entitlement-name"></td>
+                                    <td><input type="number" min="0" value="5" class="quantity-input"></td>
+                                    <td><input type="number" min="0" step="0.01" value="90.00" class="cost-input"></td>
+                                    <td class="total-spend text-right">0.00</td>
+                                    <td><button class="text-red-500 hover:text-red-700 remove-row-btn" title="Remove Row"><span class="lucide">&#xea16;</span></button></td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3" class="text-right font-bold text-gray-700">Total Contract Spend (36m):</td>
+                                    <td class="total-contract-spend text-right font-bold">0.00</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                     <button class="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 flex items-center add-row-btn" data-table-target="new-36m">
+                        <span class="lucide mr-2">&#xe908;</span> Add Entitlement
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Helper Functions ---
+        const formatCurrency = (value) => {
+            const num = parseFloat(value);
+            return isNaN(num) ? '0.00' : num.toFixed(2);
+        };
+
+        // --- Calculation Logic ---
+        function calculateRowTotal(row) {
+            const quantityInput = row.querySelector('.quantity-input');
+            const costInput = row.querySelector('.cost-input');
+            const totalSpendCell = row.querySelector('.total-spend');
+
+            const quantity = parseFloat(quantityInput.value) || 0;
+            const cost = parseFloat(costInput.value) || 0;
+            const total = quantity * cost;
+
+            totalSpendCell.textContent = formatCurrency(total);
+            return total; // Return the calculated total for table sum
+        }
+
+        function calculateTableTotal(tableBody) {
+            const table = tableBody.closest('table');
+            const totalContractSpendCell = table.querySelector('tfoot .total-contract-spend');
+            let totalSum = 0;
+
+            tableBody.querySelectorAll('.entitlement-row').forEach(row => {
+                // Ensure row total is calculated before summing
+                totalSum += calculateRowTotal(row);
+            });
+
+            totalContractSpendCell.textContent = formatCurrency(totalSum);
+        }
+
+        // --- Event Handling ---
+        function addInputListeners(row) {
+            const quantityInput = row.querySelector('.quantity-input');
+            const costInput = row.querySelector('.cost-input');
+            const tableBody = row.closest('tbody');
+
+            [quantityInput, costInput].forEach(input => {
+                input.addEventListener('input', () => {
+                    // Recalculate row total and then the table total
+                    calculateTableTotal(tableBody);
+                });
+            });
+        }
+
+         function addRemoveListener(button) {
+            button.addEventListener('click', (event) => {
+                const row = event.target.closest('.entitlement-row');
+                const tableBody = row.closest('tbody');
+                row.remove();
+                // Recalculate total after removing row
+                calculateTableTotal(tableBody);
+            });
+        }
+
+
+        // --- Dynamic Row Addition ---
+        function addEntitlementRow(tableBody) {
+            const newRow = document.createElement('tr');
+            newRow.classList.add('entitlement-row');
+            newRow.innerHTML = `
+                <td><input type="text" placeholder="New Entitlement" class="entitlement-name"></td>
+                <td><input type="number" min="0" value="1" class="quantity-input"></td>
+                <td><input type="number" min="0" step="0.01" value="0.00" class="cost-input"></td>
+                <td class="total-spend text-right">0.00</td>
+                <td><button class="text-red-500 hover:text-red-700 remove-row-btn" title="Remove Row"><span class="lucide">&#xea16;</span></button></td>
+            `;
+            tableBody.appendChild(newRow);
+            addInputListeners(newRow); // Add listeners to new inputs
+            addRemoveListener(newRow.querySelector('.remove-row-btn')); // Add listener to new remove button
+            calculateTableTotal(tableBody); // Recalculate total after adding row
+        }
+
+        // --- Tab Switching Logic ---
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabPanes = document.querySelectorAll('#tab-content .tab-pane');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetTabId = button.getAttribute('data-tab');
+
+                // Update button styles
+                tabButtons.forEach(btn => {
+                    btn.classList.remove('tab-active');
+                    btn.classList.add('text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                });
+                button.classList.add('tab-active');
+                button.classList.remove('text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+
+
+                // Show/hide tab panes
+                tabPanes.forEach(pane => {
+                    if (pane.id === targetTabId) {
+                        pane.classList.remove('hidden');
+                        pane.classList.add('active'); // You might use 'active' for styling or logic if needed
+                    } else {
+                        pane.classList.add('hidden');
+                        pane.classList.remove('active');
+                    }
+                });
+            });
+        });
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Add listeners to initially present rows and calculate totals
+            document.querySelectorAll('.entitlement-row').forEach(row => {
+                addInputListeners(row);
+                 const removeBtn = row.querySelector('.remove-row-btn');
+                if (removeBtn) {
+                    addRemoveListener(removeBtn);
+                }
+            });
+
+            // Calculate initial totals for all tables
+            document.querySelectorAll('tbody').forEach(tbody => {
+                calculateTableTotal(tbody);
+            });
+
+            // Add listeners to "Add Row" buttons
+            document.querySelectorAll('.add-row-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetTableId = button.getAttribute('data-table-target');
+                    const targetTableBody = document.querySelector(`tbody[data-table-id="${targetTableId}"]`);
+                    if (targetTableBody) {
+                        addEntitlementRow(targetTableBody);
+                    } else {
+                        console.error("Could not find table body for target:", targetTableId);
+                    }
+                });
+            });
+
+             // Ensure the first tab is active visually on load
+            const firstTabButton = document.querySelector('.tab-button[data-tab="12m"]');
+            if (firstTabButton) {
+                 firstTabButton.classList.add('tab-active');
+                 firstTabButton.classList.remove('text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+            }
+             const firstTabPane = document.getElementById('12m');
+             if(firstTabPane) {
+                 firstTabPane.classList.remove('hidden');
+                 firstTabPane.classList.add('active');
+             }
+        });
+
+    </script>
+
+</body>
+</html>
